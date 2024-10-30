@@ -1,0 +1,80 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+// Abstract contract Employee
+abstract contract Employee {
+    uint public idNumber;
+    uint public managerId;
+
+    constructor(uint _idNumber, uint _managerId) {
+        idNumber = _idNumber;
+        managerId = _managerId;
+    }
+
+    // Virtual function to get annual cost
+    function getAnnualCost() public view virtual returns (uint);
+}
+
+// Salaried contract inheriting from Employee
+contract Salaried is Employee {
+    uint public annualSalary;
+
+    constructor(uint _idNumber, uint _managerId, uint _annualSalary) Employee(_idNumber, _managerId) {
+        annualSalary = _annualSalary;
+    }
+
+    // Override function to return annual salary cost
+    function getAnnualCost() public view override returns (uint) {
+        return annualSalary;
+    }
+}
+
+// Hourly contract inheriting from Employee
+contract Hourly is Employee {
+    uint public hourlyRate;
+
+    constructor(uint _idNumber, uint _managerId, uint _hourlyRate) Employee(_idNumber, _managerId) {
+        hourlyRate = _hourlyRate;
+    }
+
+    // Override function to calculate annual cost based on hourly rate (assuming 2080 work hours per year)
+    function getAnnualCost() public view override returns (uint) {
+        return hourlyRate * 2080;
+    }
+}
+
+// Manager contract with an array for employee IDs
+contract Manager {
+    uint[] public employeeIds;
+
+    // Function to add an employee ID to the manager's list
+    function addReport(uint _id) public {
+        employeeIds.push(_id);
+    }
+
+    // Function to reset the reports array
+    function resetReports() public {
+        delete employeeIds;
+    }
+}
+
+// Salesperson contract inheriting from Hourly
+contract Salesperson is Hourly {
+    constructor(uint _idNumber, uint _managerId, uint _hourlyRate) Hourly(_idNumber, _managerId, _hourlyRate) {}
+}
+
+// EngineeringManager contract inheriting from both Salaried and Manager
+contract EngineeringManager is Salaried, Manager {
+    constructor(uint _idNumber, uint _managerId, uint _annualSalary) Salaried(_idNumber, _managerId, _annualSalary) {}
+}
+
+// Submission contract to store deployed addresses of Salesperson and EngineeringManager
+contract InheritanceSubmission {
+    address public salesPerson;
+    address public engineeringManager;
+
+    constructor(address _salesPerson, address _engineeringManager) {
+        salesPerson = _salesPerson;
+        engineeringManager = _engineeringManager;
+    }
+}
