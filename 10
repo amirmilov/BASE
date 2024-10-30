@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+error TokensClaimed();
+error AllTokensClaimed();
+error UnsafeTransfer(address addr);
+
+contract UnburnableToken {
+    // State variables
+    mapping(address => uint) public balances;
+    uint public totalSupply;
+    uint public totalClaimed;
+
+    // Tracks whether an address has already claimed tokens
+    mapping(address => bool) private hasClaimed;
+
+    // Constants
+    uint private constant CLAIM_AMOUNT = 1000;
+    uint private constant MAX_SUPPLY = 100_000_000;
+
+    // Constructor to set the total supply
+    constructor() {
+        totalSupply = MAX_SUPPLY;
+        totalClaimed = 0;
+    }
+
+    // Function to claim tokens
+    function claim() public {
+        if (hasClaimed[msg.sender]) {
+            revert TokensClaimed();
+        }
+        if (totalClaimed + CLAIM_AMOUNT > totalSupply) {
+            revert AllTokensClaimed();
+        }
+
+        balances[msg.sender] += CLAIM_AMOUNT;
+        totalClaimed += CLAIM_AMOUNT;
+        hasClaimed[msg.sender] = true;
+    }
+
+    // Function to safely transfer tokens
+    function safeTransfer(address _to, uint _amount) public {
+        require(balances[msg.sender] >= _amount, "Insufficient balance");
+        if (_to == address(0) || _to.balance == 0) {
+            revert UnsafeTransfer(_to);
+        }
+
+        balances[msg.sender] -= _amount;
+        balances[_to] += _amount;
+    }
+}
