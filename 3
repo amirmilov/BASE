@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+contract EmployeeStorage {
+    // Private state variables to store employee details
+    uint16 private shares; // Number of shares owned by the employee
+    uint32 private salary; // Employee's monthly salary
+    uint256 public idNumber; // Unique employee ID (publicly accessible)
+    string public name; // Employee's name (publicly accessible)
+    
+    // Constructor to initialize employee details upon deployment
+    constructor(uint16 _initialShares, string memory _employeeName, uint32 _monthlySalary, uint _employeeID) {
+        shares = _initialShares;
+        name = _employeeName;
+        salary = _monthlySalary;
+        idNumber = _employeeID;
+    }
+
+    // Function to view the number of shares owned by the employee
+    function viewShares() public view returns (uint16) {
+        return shares;
+    }
+    
+    // Function to view the employee's monthly salary
+    function viewSalary() public view returns (uint32) {
+        return salary;
+    }
+    
+    // Custom error to handle too many shares
+    error TooManyShares(uint16 totalShares);
+
+    // Function to add more shares to the employee's account
+    function grantShares(uint16 _additionalShares) public {
+        // Check if adding new shares exceeds the maximum allowed shares
+        if (_additionalShares > 5000) {
+            revert("Too many shares"); // Revert with a message if exceeding individual grant limit
+        } else if (shares + _additionalShares > 5000) {
+            revert TooManyShares(shares + _additionalShares); // Revert with custom error if total exceeds limit
+        }
+        shares += _additionalShares; // Update shares if all checks pass
+    }
+
+    // Function for testing storage packing of variables
+    function checkForPacking(uint _slot) public view returns (uint r) {
+        assembly {
+            r := sload(_slot)
+        }
+    }
+
+    // Function to reset shares for debugging
+    function debugResetShares() public {
+        shares = 1000;
+    }
+}
