@@ -1,0 +1,79 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+contract FavoriteRecords {
+    // Public mapping to track approved records
+    mapping(string => bool) public approvedRecords;
+
+    // Mapping to track user favorites
+    mapping(address => mapping(string => bool)) private userFavorites;
+
+    // Custom error for non-approved records
+    error NotApproved(string album);
+
+    // List of predefined approved records
+    string[] private approvedAlbumList = [
+        "Thriller",
+        "Back in Black",
+        "The Bodyguard",
+        "The Dark Side of the Moon",
+        "Their Greatest Hits (1971-1975)",
+        "Hotel California",
+        "Come On Over",
+        "Rumours",
+        "Saturday Night Fever"
+    ];
+
+    // Constructor to initialize approved records
+    constructor() {
+        for (uint i = 0; i < approvedAlbumList.length; i++) {
+            approvedRecords[approvedAlbumList[i]] = true;
+        }
+    }
+
+    // Function to return all approved records
+    function getApprovedRecords() public view returns (string[] memory) {
+        return approvedAlbumList;
+    }
+
+    // Function to add a record to the user's favorites
+    function addRecord(string calldata album) public {
+        if (!approvedRecords[album]) {
+            revert NotApproved(album); // Revert if album is not on the approved list
+        }
+        userFavorites[msg.sender][album] = true; // Add album to user's favorites
+    }
+
+    // Function to get the list of favorites for a specific user
+    function getUserFavorites(address user) public view returns (string[] memory) {
+        uint count;
+
+        // Count user's favorites
+        for (uint i = 0; i < approvedAlbumList.length; i++) {
+            if (userFavorites[user][approvedAlbumList[i]]) {
+                count++;
+            }
+        }
+
+        // Initialize array for user's favorite albums
+        string[] memory favorites = new string[](count);
+        uint index;
+
+        // Populate array with user's favorite albums
+        for (uint i = 0; i < approvedAlbumList.length; i++) {
+            if (userFavorites[user][approvedAlbumList[i]]) {
+                favorites[index] = approvedAlbumList[i];
+                index++;
+            }
+        }
+
+        return favorites;
+    }
+
+    // Function to reset user's favorite records
+    function resetUserFavorites() public {
+        for (uint i = 0; i < approvedAlbumList.length; i++) {
+            userFavorites[msg.sender][approvedAlbumList[i]] = false;
+        }
+    }
+}
