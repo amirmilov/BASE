@@ -1,0 +1,97 @@
+                                                                                                                    1
+                                                                                                                    
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract AddressBook is Ownable {
+    struct Contact {
+        uint id;
+        string firstName;
+        string lastName;
+        uint[] phoneNumbers;
+    }
+
+    mapping(uint => Contact) private contacts;
+    uint[] private contactIds; // Tracks all contact IDs for retrieval
+
+    // Custom error for when a contact is not found
+    error ContactNotFound(uint id);
+
+    // Constructor to set the initial owner to the deployer
+    constructor() Ownable(msg.sender) {}
+
+    // Function to add a contact, restricted to the owner
+    function addContact(uint _id, string memory _firstName, string memory _lastName, uint[] memory _phoneNumbers) public onlyOwner {
+        require(bytes(_firstName).length > 0, "First name is required");
+        require(bytes(_lastName).length > 0, "Last name is required");
+        require(_phoneNumbers.length > 0, "At least one phone number is required");
+
+        Contact memory newContact = Contact({
+            id: _id,
+            firstName: _firstName,
+            lastName: _lastName,
+            phoneNumbers: _phoneNumbers
+        });
+
+        contacts[_id] = newContact;
+        contactIds.push(_id);
+    }
+
+    // Function to delete a contact, restricted to the owner
+    function deleteContact(uint _id) public onlyOwner {
+        if (contacts[_id].id != _id) {
+            revert ContactNotFound(_id);
+        }
+
+        delete contacts[_id];
+
+        // Remove ID from contactIds array
+        for (uint i = 0; i < contactIds.length; i++) {
+            if (contactIds[i] == _id) {
+                contactIds[i] = contactIds[contactIds.length - 1];
+                contactIds.pop();
+                break;
+            }
+        }
+    }
+
+    // Function to retrieve a contact's details by ID
+    function getContact(uint _id) public view returns (Contact memory) {
+        if (contacts[_id].id != _id) {
+            revert ContactNotFound(_id);
+        }
+        return contacts[_id];
+    }
+
+    // Function to retrieve all contacts
+    function getAllContacts() public view returns (Contact[] memory) {
+        Contact[] memory allContacts = new Contact[](contactIds.length);
+        for (uint i = 0; i < contactIds.length; i++) {
+            allContacts[i] = contacts[contactIds[i]];
+        }
+        return allContacts;
+    }
+}
+
+
+                                                                                                                      2
+                                                                                                                      
+                                                                                                                      // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.8;
+
+import "./AddressBook.sol";
+
+contract AddressBookFactory {
+    string private salt = "value";
+
+    function deploy() external returns (AddressBook) {
+        AddressBook newAddressBook = new AddressBook();
+
+        newAddressBook.transferOwnership(msg.sender);
+
+        // Return the newly created AddressBook contract
+        return newAddressBook;
+    }
+}
