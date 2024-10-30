@@ -1,0 +1,75 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.25;
+
+contract ArraysExercise {
+    // Initialize the array with numbers from 1 to 10
+    uint[] public numbers = [1,2,3,4,5,6,7,8,9,10];
+
+    // Declare storage for senders and timestamps
+    address[] public senders;
+    uint[] public timestamps;
+
+    // Function to return the entire numbers array
+    function getNumbers() public view returns (uint[] memory) {
+        return numbers;
+    }
+
+    // Function to reset numbers array to its initial values (1-10)
+    function resetNumbers() public {
+        delete numbers; // Clear the array
+        numbers = [1,2,3,4,5,6,7,8,9,10]; // Reassign the initial values
+    }
+
+    // Function to append an array of numbers to the existing numbers array
+    function appendToNumbers(uint[] calldata _toAppend) public {
+        uint length = _toAppend.length;
+        for (uint i = 0; i < length; i++) {
+            numbers.push(_toAppend[i]);
+        }
+    }
+
+    // Function to save the caller's address and provided timestamp
+    function saveTimestamp(uint _unixTimestamp) public {
+        senders.push(msg.sender); // Add caller's address to senders
+        timestamps.push(_unixTimestamp); // Add timestamp to timestamps
+    }
+
+    // Function to get all timestamps and corresponding senders after Y2K (Jan 1, 2000)
+    function afterY2K() public view returns (uint[] memory, address[] memory) {
+        uint count;
+        
+        // Count valid timestamps
+        for (uint i = 0; i < timestamps.length; i++) {
+            if (timestamps[i] > 946702800) { // Filter for timestamps after Y2K
+                count++;
+            }
+        }
+
+        // Initialize filtered arrays
+        uint[] memory recentTimestamps = new uint[](count);
+        address[] memory recentSenders = new address[](count);
+
+        uint index;
+        
+        // Populate filtered arrays
+        for (uint i = 0; i < timestamps.length; i++) {
+            if (timestamps[i] > 946702800) {
+                recentTimestamps[index] = timestamps[i];
+                recentSenders[index] = senders[i];
+                index++;
+            }
+        }
+
+        return (recentTimestamps, recentSenders);
+    }
+
+    // Reset function for senders
+    function resetSenders() public {
+        delete senders;
+    }
+
+    // Reset function for timestamps
+    function resetTimestamps() public {
+        delete timestamps;
+    }
+}
